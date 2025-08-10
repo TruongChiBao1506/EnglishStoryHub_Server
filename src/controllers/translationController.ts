@@ -165,14 +165,15 @@ const mockTranslate = async (text: string, targetLang: string): Promise<string> 
 };
 
 // POST /api/translate
-export const translateText = asyncHandler(async (req: TranslateRequest, res: Response) => {
+export const translateText = asyncHandler(async (req: TranslateRequest, res: Response): Promise<void> => {
   const { text, targetLanguage } = req.body;
 
   if (!text || !targetLanguage) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: 'Text and target language are required'
     });
+    return;
   }
 
   try {

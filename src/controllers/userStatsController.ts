@@ -11,7 +11,7 @@ interface AuthRequest extends Request {
 }
 
 // Get leaderboard
-export const getLeaderboard = asyncHandler(async (req: Request, res: Response) => {
+export const getLeaderboard = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const page = parseInt(req.query.page as string || '1', 10);
   const limit = Math.min(parseInt(req.query.limit as string || '10', 10), 50);
   const skip = (page - 1) * limit;
@@ -49,12 +49,13 @@ export const getLeaderboard = asyncHandler(async (req: Request, res: Response) =
 });
 
 // Get user rank and stats
-export const getUserStats = asyncHandler(async (req: AuthRequest, res: Response) => {
+export const getUserStats = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'User not authenticated',
     });
+    return;
   }
 
   // Get user rank
@@ -109,21 +110,23 @@ export const getUserStats = asyncHandler(async (req: AuthRequest, res: Response)
 });
 
 // Get user's achievements
-export const getUserAchievementsController = asyncHandler(async (req: AuthRequest, res: Response) => {
+export const getUserAchievementsController = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'User not authenticated',
     });
+    return;
   }
 
   const achievementsData = await getUserAchievements(req.user._id.toString());
 
   if (!achievementsData) {
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: 'Failed to fetch achievements'
     });
+    return;
   }
 
   res.status(200).json({
@@ -133,18 +136,27 @@ export const getUserAchievementsController = asyncHandler(async (req: AuthReques
 });
 
 // Get public user profile stats (for viewing other users)
-export const getPublicUserStats = asyncHandler(async (req: Request, res: Response) => {
+export const getPublicUserStats = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { userId } = req.params;
+
+  if (!userId) {
+    res.status(400).json({
+      success: false,
+      message: 'User ID is required'
+    });
+    return;
+  }
 
   const user = await User.findById(userId)
     .select('username avatar bio level points createdAt')
     .lean();
 
   if (!user) {
-    return res.status(404).json({
+    res.status(404).json({
       success: false,
       message: 'User not found'
     });
+    return;
   }
 
   // Get user rank

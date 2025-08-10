@@ -2,7 +2,6 @@ import User from '../models/User';
 import Achievement from '../models/Achievement';
 import Story from '../models/Story';
 import Comment from '../models/Comment';
-import { getUserLevelInfo } from './levelSystem';
 
 interface AchievementTemplate {
   title: string;

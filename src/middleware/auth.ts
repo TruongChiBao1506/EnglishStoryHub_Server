@@ -81,7 +81,7 @@ export const authorize = (...roles: string[]) => {
 
 export const optionalAuth = async (
   req: AuthRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
