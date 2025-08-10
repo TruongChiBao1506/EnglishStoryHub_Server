@@ -8,11 +8,11 @@ const generateToken = (userId: string): string => {
     throw new Error('JWT_SECRET is not defined in environment variables');
   }
 
-  return jwt.sign(
-    { userId },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-  );
+  const payload = { userId };
+  const secret = process.env.JWT_SECRET;
+  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+
+  return jwt.sign(payload, secret, { expiresIn } as any);
 };
 
 const sendTokenResponse = (user: IUser, statusCode: number, res: Response): void => {
@@ -38,7 +38,7 @@ const sendTokenResponse = (user: IUser, statusCode: number, res: Response): void
   });
 };
 
-export const register = asyncHandler(async (req: Request, res: Response) => {
+export const register = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { username, email, password, bio, level } = req.body;
 
   // Check if user already exists
@@ -47,12 +47,13 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   });
 
   if (existingUser) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: existingUser.email === email 
         ? 'Email already registered' 
         : 'Username already taken',
     });
+    return;
   }
 
   // Create new user
@@ -67,44 +68,48 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   sendTokenResponse(user, 201, res);
 });
 
-export const login = asyncHandler(async (req: Request, res: Response) => {
+export const login = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
   // Find user and include password for comparison
   const user = await User.findOne({ email }).select('+password');
 
   if (!user || !(await user.comparePassword(password))) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'Invalid email or password',
     });
+    return;
   }
 
   if (!user.isActive) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'Account is deactivated. Please contact support.',
     });
+    return;
   }
 
   sendTokenResponse(user, 200, res);
 });
 
-export const getMe = asyncHandler(async (req: Request & { user?: IUser }, res: Response) => {
+export const getMe = asyncHandler(async (req: Request & { user?: IUser }, res: Response): Promise<void> => {
   if (!req.user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'User not authenticated',
     });
+    return;
   }
 
   const user = await User.findById(req.user._id);
   
   if (!user) {
-    return res.status(404).json({
+    res.status(404).json({
       success: false,
       message: 'User not found',
     });
+    return;
   }
 
   res.status(200).json({
@@ -124,12 +129,13 @@ export const getMe = asyncHandler(async (req: Request & { user?: IUser }, res: R
   });
 });
 
-export const updateProfile = asyncHandler(async (req: Request & { user?: IUser }, res: Response) => {
+export const updateProfile = asyncHandler(async (req: Request & { user?: IUser }, res: Response): Promise<void> => {
   if (!req.user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'User not authenticated',
     });
+    return;
   }
 
   const { username, bio, level, avatar } = req.body;
@@ -138,10 +144,11 @@ export const updateProfile = asyncHandler(async (req: Request & { user?: IUser }
   if (username && username !== req.user.username) {
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Username already taken',
       });
+      return;
     }
   }
 
@@ -158,10 +165,11 @@ export const updateProfile = asyncHandler(async (req: Request & { user?: IUser }
   );
 
   if (!user) {
-    return res.status(404).json({
+    res.status(404).json({
       success: false,
       message: 'User not found',
     });
+    return;
   }
 
   res.status(200).json({

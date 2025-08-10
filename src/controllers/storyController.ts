@@ -37,12 +37,13 @@ interface QueryParams {
   sortOrder?: string;
 }
 
-export const createStory = asyncHandler(async (req: AuthRequest, res: Response) => {
+export const createStory = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'User not authenticated',
     });
+    return;
   }
 
   const storyData = {
@@ -158,35 +159,38 @@ export const getStories = asyncHandler(async (req: Request<{}, {}, {}, QueryPara
   });
 });
 
-export const getStoryById = asyncHandler(async (req: AuthRequest, res: Response) => {
+export const getStoryById = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   const { id } = req.params;
 
   // Debug log để theo dõi API calls
   console.log(`📖 getStoryById called for story: ${id} at ${new Date().toISOString()}`);
   console.log(`🍪 Current cookies:`, Object.keys(req.cookies).filter(key => key.startsWith('story_viewed_')));
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({
+  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400).json({
       success: false,
       message: 'Invalid story ID',
     });
+    return;
   }
 
   const story = await Story.findById(id)
     .populate('author', 'username avatar level bio');
 
   if (!story) {
-    return res.status(404).json({
+    res.status(404).json({
       success: false,
       message: 'Story not found',
     });
+    return;
   }
 
   if (!story.isPublished && (!req.user || story.author._id.toString() !== req.user._id.toString())) {
-    return res.status(403).json({
+    res.status(403).json({
       success: false,
       message: 'Access denied to unpublished story',
     });
+    return;
   }
 
   // Hybrid view tracking: In-memory cache + Cookie-based
@@ -230,38 +234,42 @@ export const getStoryById = asyncHandler(async (req: AuthRequest, res: Response)
   });
 });
 
-export const updateStory = asyncHandler(async (req: AuthRequest, res: Response) => {
+export const updateStory = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'User not authenticated',
     });
+    return;
   }
 
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({
+  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400).json({
       success: false,
       message: 'Invalid story ID',
     });
+    return;
   }
 
   const story = await Story.findById(id);
 
   if (!story) {
-    return res.status(404).json({
+    res.status(404).json({
       success: false,
       message: 'Story not found',
     });
+    return;
   }
 
   // Check ownership
   if (story.author.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-    return res.status(403).json({
+    res.status(403).json({
       success: false,
       message: 'Access denied. You can only edit your own stories.',
     });
+    return;
   }
 
   const updatedStory = await Story.findByIdAndUpdate(
@@ -277,38 +285,42 @@ export const updateStory = asyncHandler(async (req: AuthRequest, res: Response) 
   });
 });
 
-export const deleteStory = asyncHandler(async (req: AuthRequest, res: Response) => {
+export const deleteStory = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'User not authenticated',
     });
+    return;
   }
 
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({
+  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400).json({
       success: false,
       message: 'Invalid story ID',
     });
+    return;
   }
 
   const story = await Story.findById(id);
 
   if (!story) {
-    return res.status(404).json({
+    res.status(404).json({
       success: false,
       message: 'Story not found',
     });
+    return;
   }
 
   // Check ownership
   if (story.author.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-    return res.status(403).json({
+    res.status(403).json({
       success: false,
       message: 'Access denied. You can only delete your own stories.',
     });
+    return;
   }
 
   // Delete associated comments
@@ -323,30 +335,33 @@ export const deleteStory = asyncHandler(async (req: AuthRequest, res: Response) 
   });
 });
 
-export const toggleLike = asyncHandler(async (req: AuthRequest, res: Response) => {
+export const toggleLike = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'User not authenticated',
     });
+    return;
   }
 
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({
+  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400).json({
       success: false,
       message: 'Invalid story ID',
     });
+    return;
   }
 
   const story = await Story.findById(id);
 
   if (!story) {
-    return res.status(404).json({
+    res.status(404).json({
       success: false,
       message: 'Story not found',
     });
+    return;
   }
 
   const userId = req.user._id;
@@ -380,17 +395,18 @@ export const toggleLike = asyncHandler(async (req: AuthRequest, res: Response) =
   });
 });
 
-export const getUserStories = asyncHandler(async (req: Request<{}, {}, {}, QueryParams>, res: Response) => {
+export const getUserStories = asyncHandler(async (req: Request<{ userId: string }, {}, {}, QueryParams>, res: Response): Promise<void> => {
   const { userId } = req.params;
   const page = parseInt(req.query.page || '1', 10);
   const limit = Math.min(parseInt(req.query.limit || '10', 10), 50);
   const skip = (page - 1) * limit;
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: 'Invalid user ID',
     });
+    return;
   }
 
   const filter: any = { 

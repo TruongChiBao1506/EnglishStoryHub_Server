@@ -9,48 +9,53 @@ interface AuthRequest extends Request {
   user?: IUser;
 }
 
-export const createComment = asyncHandler(async (req: AuthRequest, res: Response) => {
+export const createComment = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'User not authenticated',
     });
+    return;
   }
 
   const { storyId } = req.params;
   const { content, parentComment } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(storyId)) {
-    return res.status(400).json({
+  if (!storyId || !mongoose.Types.ObjectId.isValid(storyId)) {
+    res.status(400).json({
       success: false,
       message: 'Invalid story ID',
     });
+    return;
   }
 
   // Check if story exists
   const story = await Story.findById(storyId);
   if (!story) {
-    return res.status(404).json({
+    res.status(404).json({
       success: false,
       message: 'Story not found',
     });
+    return;
   }
 
   // If replying to a comment, check if parent comment exists
   if (parentComment) {
     if (!mongoose.Types.ObjectId.isValid(parentComment)) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Invalid parent comment ID',
       });
+      return;
     }
 
     const parentCommentDoc = await Comment.findById(parentComment);
     if (!parentCommentDoc || parentCommentDoc.story.toString() !== storyId) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         message: 'Parent comment not found or does not belong to this story',
       });
+      return;
     }
   }
 
@@ -80,17 +85,18 @@ export const createComment = asyncHandler(async (req: AuthRequest, res: Response
   });
 });
 
-export const getComments = asyncHandler(async (req: Request, res: Response) => {
+export const getComments = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { storyId } = req.params;
   const page = parseInt(req.query.page as string || '1', 10);
   const limit = Math.min(parseInt(req.query.limit as string || '20', 10), 100);
   const skip = (page - 1) * limit;
 
-  if (!mongoose.Types.ObjectId.isValid(storyId)) {
-    return res.status(400).json({
+  if (!storyId || !mongoose.Types.ObjectId.isValid(storyId)) {
+    res.status(400).json({
       success: false,
       message: 'Invalid story ID',
     });
+    return;
   }
 
   // Get top-level comments (no parent)
@@ -149,39 +155,43 @@ export const getComments = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-export const updateComment = asyncHandler(async (req: AuthRequest, res: Response) => {
+export const updateComment = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'User not authenticated',
     });
+    return;
   }
 
   const { commentId } = req.params;
   const { content } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(commentId)) {
-    return res.status(400).json({
+  if (!commentId || !mongoose.Types.ObjectId.isValid(commentId)) {
+    res.status(400).json({
       success: false,
       message: 'Invalid comment ID',
     });
+    return;
   }
 
   const comment = await Comment.findById(commentId);
 
   if (!comment) {
-    return res.status(404).json({
+    res.status(404).json({
       success: false,
       message: 'Comment not found',
     });
+    return;
   }
 
   // Check ownership
   if (comment.author.toString() !== req.user._id.toString()) {
-    return res.status(403).json({
+    res.status(403).json({
       success: false,
       message: 'Access denied. You can only edit your own comments.',
     });
+    return;
   }
 
   const updatedComment = await Comment.findByIdAndUpdate(
@@ -197,38 +207,42 @@ export const updateComment = asyncHandler(async (req: AuthRequest, res: Response
   });
 });
 
-export const deleteComment = asyncHandler(async (req: AuthRequest, res: Response) => {
+export const deleteComment = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'User not authenticated',
     });
+    return;
   }
 
   const { commentId } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(commentId)) {
-    return res.status(400).json({
+  if (!commentId || !mongoose.Types.ObjectId.isValid(commentId)) {
+    res.status(400).json({
       success: false,
       message: 'Invalid comment ID',
     });
+    return;
   }
 
   const comment = await Comment.findById(commentId);
 
   if (!comment) {
-    return res.status(404).json({
+    res.status(404).json({
       success: false,
       message: 'Comment not found',
     });
+    return;
   }
 
   // Check ownership or admin role
   if (comment.author.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-    return res.status(403).json({
+    res.status(403).json({
       success: false,
       message: 'Access denied. You can only delete your own comments.',
     });
+    return;
   }
 
   // Delete all replies to this comment
@@ -252,30 +266,33 @@ export const deleteComment = asyncHandler(async (req: AuthRequest, res: Response
   });
 });
 
-export const toggleCommentLike = asyncHandler(async (req: AuthRequest, res: Response) => {
+export const toggleCommentLike = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'User not authenticated',
     });
+    return;
   }
 
   const { commentId } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(commentId)) {
-    return res.status(400).json({
+  if (!commentId || !mongoose.Types.ObjectId.isValid(commentId)) {
+    res.status(400).json({
       success: false,
       message: 'Invalid comment ID',
     });
+    return;
   }
 
   const comment = await Comment.findById(commentId);
 
   if (!comment) {
-    return res.status(404).json({
+    res.status(404).json({
       success: false,
       message: 'Comment not found',
     });
+    return;
   }
 
   const userId = req.user._id;
