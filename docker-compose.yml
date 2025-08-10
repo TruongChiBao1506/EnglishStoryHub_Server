@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:6.0
+    container_name: english-story-hub-db
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: english-story-hub
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - english-story-hub
+
+  # Backend API
+  api:
+    build: .
+    container_name: english-story-hub-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      MONGODB_URI: mongodb://mongodb:27017/english-story-hub
+      JWT_SECRET: english-story-hub-super-secret-key-2024
+      JWT_EXPIRES_IN: 7d
+      PORT: 5000
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    networks:
+      - english-story-hub
+    volumes:
+      - ./public:/app/public
+
+volumes:
+  mongodb_data:
+
+networks:
+  english-story-hub:
+    driver: bridge

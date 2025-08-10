@@ -1,0 +1,52 @@
+{
+  "name": "english-story-hub-server",
+  "version": "1.0.0",
+  "description": "English Story Hub - A community platform for English learners to create and share stories",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "start": "node dist/index.js",
+    "start:prod": "NODE_ENV=production npm start",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rm -rf dist",
+    "deploy:build": "npm run clean && npm run build",
+    "seed": "ts-node-dev scripts/seed.ts"
+  },
+  "keywords": [
+    "english",
+    "learning",
+    "stories",
+    "community",
+    "education"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "@google-cloud/translate": "^9.2.0",
+    "@google/genai": "^1.13.0",
+    "@types/cookie-parser": "^1.4.9",
+    "axios": "^1.11.0",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.10.0",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.0",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.4",
+    "@types/cors": "^2.8.14",
+    "@types/express": "^4.17.17",
+    "@types/jsonwebtoken": "^9.0.3",
+    "@types/multer": "^1.4.7",
+    "@types/node": "^20.5.9",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.2.2"
+  }
+}

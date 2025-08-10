@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Story Hub - Demo App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .auth-section, .stories-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .auth-forms {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+        }
+
+        .btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .story-item {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #f7fafc;
+        }
+
+        .story-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .story-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .story-difficulty {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .story-content {
+            color: #4a5568;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .story-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .story-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .user-info {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+
+        .error {
+            background: #fed7d7;
+            border: 1px solid #f56565;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .success {
+            background: #c6f6d5;
+            border: 1px solid #38a169;
+            color: #2f855a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .auth-forms {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="header">
+            <h1>📚 English Story Hub</h1>
+            <p>Interactive Demo Application</p>
+        </div>
+
+        <!-- User Authentication Section -->
+        <div class="auth-section" id="authSection">
+            <h2>🔐 Authentication</h2>
+            <div id="userInfo" class="user-info" style="display: none;"></div>
+            
+            <div class="auth-forms" id="authForms">
+                <!-- Registration Form -->
+                <div>
+                    <h3>Register</h3>
+                    <form id="registerForm">
+                        <div class="form-group">
+                            <label>Username:</label>
+                            <input type="text" id="regUsername" required minlength="3" maxlength="20">
+                        </div>
+                        <div class="form-group">
+                            <label>Email:</label>
+                            <input type="email" id="regEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password:</label>
+                            <input type="password" id="regPassword" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label>Level:</label>
+                            <select id="regLevel">
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Bio (optional):</label>
+                            <textarea id="regBio" rows="2" maxlength="200"></textarea>
+                        </div>
+                        <button type="submit" class="btn">Register</button>
+                    </form>
+                </div>
+
+                <!-- Login Form -->
+                <div>
+                    <h3>Login</h3>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label>Email:</label>
+                            <input type="email" id="loginEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password:</label>
+                            <input type="password" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn">Login</button>
+                        <button type="button" class="btn" id="logoutBtn" style="display: none; background: #e53e3e;">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Story Section -->
+        <div class="auth-section" id="createStorySection" style="display: none;">
+            <h2>✍️ Create New Story</h2>
+            <form id="createStoryForm">
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" id="storyTitle" required minlength="5" maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label>Content:</label>
+                    <textarea id="storyContent" rows="6" required minlength="50" maxlength="5000"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Difficulty:</label>
+                    <select id="storyDifficulty" required>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tags (comma-separated):</label>
+                    <input type="text" id="storyTags" placeholder="adventure, friendship, learning">
+                </div>
+                <div class="form-group">
+                    <label>Excerpt (optional):</label>
+                    <textarea id="storyExcerpt" rows="2" maxlength="200"></textarea>
+                </div>
+                <button type="submit" class="btn">Create Story</button>
+            </form>
+        </div>
+
+        <!-- Stories Section -->
+        <div class="stories-section">
+            <h2>📖 Stories</h2>
+            <div class="loading" id="storiesLoading">Loading stories...</div>
+            <div id="storiesList"></div>
+            <button id="loadMoreBtn" class="btn" style="display: none; width: 100%; margin-top: 20px;">Load More Stories</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let currentUser = null;
+        let currentToken = null;
+        let currentPage = 1;
+
+        // DOM Elements
+        const authSection = document.getElementById('authSection');
+        const userInfo = document.getElementById('userInfo');
+        const authForms = document.getElementById('authForms');
+        const createStorySection = document.getElementById('createStorySection');
+        const storiesLoading = document.getElementById('storiesLoading');
+        const storiesList = document.getElementById('storiesList');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        // Helper Functions
+        function showMessage(message, type = 'success') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            
+            const firstSection = document.querySelector('.auth-section') || document.querySelector('.stories-section');
+            firstSection.insertBefore(messageDiv, firstSection.firstChild);
+            
+            setTimeout(() => messageDiv.remove(), 5000);
+        }
+
+        async function apiCall(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                ...options,
+            };
+
+            if (currentToken) {
+                config.headers.Authorization = `Bearer ${currentToken}`;
+            }
+
+            try {
+                const response = await fetch(url, config);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'API request failed');
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // Authentication Functions
+        async function register(formData) {
+            try {
+                const data = await apiCall('/auth/register', {
+                    method: 'POST',
+                    body: JSON.stringify(formData),
+                });
+
+                currentUser = data.user;
+                currentToken = data.token;
+                updateAuthUI();
+                showMessage('Registration successful! Welcome to English Story Hub!');
+                loadStories();
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        }
+
+        async function login(formData) {
+            try {
+                const data = await apiCall('/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify(formData),
+                });
+
+                currentUser = data.user;
+                currentToken = data.token;
+                updateAuthUI();
+                showMessage(`Welcome back, ${currentUser.username}!`);
+                loadStories();
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            currentToken = null;
+            updateAuthUI();
+            showMessage('Logged out successfully!');
+            loadStories();
+        }
+
+        function updateAuthUI() {
+            if (currentUser) {
+                userInfo.style.display = 'block';
+                userInfo.innerHTML = `
+                    <strong>👤 ${currentUser.username}</strong> (${currentUser.level})
+                    <br>📧 ${currentUser.email}
+                    <br>⭐ Points: ${currentUser.points}
+                `;
+                authForms.style.display = 'none';
+                createStorySection.style.display = 'block';
+                logoutBtn.style.display = 'inline-block';
+            } else {
+                userInfo.style.display = 'none';
+                authForms.style.display = 'grid';
+                createStorySection.style.display = 'none';
+                logoutBtn.style.display = 'none';
+            }
+        }
+
+        // Story Functions
+        async function createStory(formData) {
+            try {
+                await apiCall('/stories', {
+                    method: 'POST',
+                    body: JSON.stringify(formData),
+                });
+
+                showMessage('Story created successfully! 🎉');
+                document.getElementById('createStoryForm').reset();
+                currentPage = 1;
+                storiesList.innerHTML = '';
+                loadStories();
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        }
+
+        async function loadStories(append = false) {
+            try {
+                if (!append) {
+                    storiesLoading.style.display = 'block';
+                    storiesList.innerHTML = '';
+                }
+
+                const data = await apiCall(`/stories?page=${currentPage}&limit=5`);
+                
+                if (!append) {
+                    storiesLoading.style.display = 'none';
+                }
+
+                if (data.stories && data.stories.length > 0) {
+                    data.stories.forEach(story => {
+                        const storyDiv = document.createElement('div');
+                        storyDiv.className = 'story-item';
+                        storyDiv.innerHTML = `
+                            <div class="story-header">
+                                <span class="story-title">${story.title}</span>
+                                <span class="story-difficulty">${story.difficulty}</span>
+                            </div>
+                            <div class="story-content">${story.excerpt || story.content.substring(0, 200) + '...'}</div>
+                            <div class="story-meta">
+                                <span>👤 ${story.author.username} • 📅 ${new Date(story.createdAt).toLocaleDateString()}</span>
+                                <span>👍 ${story.likesCount} • 💬 ${story.commentsCount} • 👀 ${story.viewsCount}</span>
+                            </div>
+                            ${story.tags && story.tags.length > 0 ? 
+                                `<div style="margin-top: 10px;">🏷️ ${story.tags.map(tag => `<span style="background: #edf2f7; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; margin-right: 5px;">${tag}</span>`).join('')}</div>` 
+                                : ''
+                            }
+                            <div class="story-actions">
+                                <button class="btn" onclick="toggleLike('${story._id}')" style="font-size: 14px; padding: 8px 16px;">
+                                    ${story.hasLiked ? '❤️' : '🤍'} Like (${story.likesCount})
+                                </button>
+                                <button class="btn" onclick="viewStory('${story._id}')" style="font-size: 14px; padding: 8px 16px; background: #38a169;">
+                                    📖 Read Full Story
+                                </button>
+                            </div>
+                        `;
+                        storiesList.appendChild(storyDiv);
+                    });
+
+                    // Show/hide load more button
+                    loadMoreBtn.style.display = data.pagination.hasNextPage ? 'block' : 'none';
+                } else if (!append) {
+                    storiesList.innerHTML = '<p style="text-align: center; color: #666;">No stories found. Be the first to create one!</p>';
+                    loadMoreBtn.style.display = 'none';
+                }
+            } catch (error) {
+                storiesLoading.style.display = 'none';
+                showMessage('Failed to load stories: ' + error.message, 'error');
+            }
+        }
+
+        async function toggleLike(storyId) {
+            if (!currentUser) {
+                showMessage('Please login to like stories!', 'error');
+                return;
+            }
+
+            try {
+                await apiCall(`/stories/${storyId}/like`, {
+                    method: 'POST',
+                });
+                
+                // Reload stories to update like counts
+                currentPage = 1;
+                storiesList.innerHTML = '';
+                loadStories();
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        }
+
+        async function viewStory(storyId) {
+            try {
+                const data = await apiCall(`/stories/${storyId}`);
+                
+                // Simple modal-like display
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                    background: rgba(0,0,0,0.8); z-index: 1000;
+                    display: flex; align-items: center; justify-content: center;
+                    padding: 20px;
+                `;
+                
+                const content = document.createElement('div');
+                content.style.cssText = `
+                    background: white; border-radius: 15px; padding: 30px;
+                    max-width: 800px; max-height: 80vh; overflow-y: auto;
+                    position: relative;
+                `;
+                
+                content.innerHTML = `
+                    <button onclick="this.parentElement.parentElement.remove()" style="
+                        position: absolute; top: 15px; right: 15px;
+                        background: #e53e3e; color: white; border: none;
+                        width: 30px; height: 30px; border-radius: 50%;
+                        cursor: pointer;
+                    ">×</button>
+                    <h2>${data.story.title}</h2>
+                    <p style="color: #666; margin: 10px 0;">
+                        By ${data.story.author.username} • ${data.story.difficulty} level
+                    </p>
+                    <div style="margin: 20px 0; line-height: 1.6; white-space: pre-wrap;">
+                        ${data.story.content}
+                    </div>
+                    <div style="border-top: 1px solid #eee; padding-top: 15px; color: #666;">
+                        👍 ${data.story.likesCount} likes • 💬 ${data.story.commentsCount} comments • 👀 ${data.story.viewsCount} views
+                    </div>
+                `;
+                
+                modal.appendChild(content);
+                document.body.appendChild(modal);
+                
+                // Close on background click
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.remove();
+                });
+            } catch (error) {
+                showMessage('Failed to load story: ' + error.message, 'error');
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = {
+                username: document.getElementById('regUsername').value.trim(),
+                email: document.getElementById('regEmail').value.trim(),
+                password: document.getElementById('regPassword').value,
+                level: document.getElementById('regLevel').value,
+                bio: document.getElementById('regBio').value.trim(),
+            };
+            register(formData);
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = {
+                email: document.getElementById('loginEmail').value.trim(),
+                password: document.getElementById('loginPassword').value,
+            };
+            login(formData);
+        });
+
+        document.getElementById('createStoryForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const tags = document.getElementById('storyTags').value
+                .split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag.length > 0);
+                
+            const formData = {
+                title: document.getElementById('storyTitle').value.trim(),
+                content: document.getElementById('storyContent').value.trim(),
+                difficulty: document.getElementById('storyDifficulty').value,
+                tags,
+                excerpt: document.getElementById('storyExcerpt').value.trim(),
+            };
+            createStory(formData);
+        });
+
+        logoutBtn.addEventListener('click', logout);
+
+        loadMoreBtn.addEventListener('click', () => {
+            currentPage++;
+            loadStories(true);
+        });
+
+        // Initialize
+        loadStories();
+        updateAuthUI();
+
+        // Test API connection on load
+        apiCall('/health')
+            .then(data => console.log('✅ API Connected:', data))
+            .catch(error => console.error('❌ API Connection Failed:', error));
+    </script>
+</body>
+</html>

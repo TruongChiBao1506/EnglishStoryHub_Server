@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation Feature Demo - English Story Hub</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/antd/5.12.8/reset.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0f5ff 0%, #fffbe6 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .header h1 {
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        .header p {
+            color: #6b7280;
+            margin: 0;
+        }
+        .feature-demo {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #bae6fd;
+            margin-bottom: 24px;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .language-select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+        }
+        .translate-btn {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .translate-btn:hover {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        }
+        .story-content {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            line-height: 1.75;
+            color: #374151;
+        }
+        .story-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+        .translation-info {
+            margin-top: 16px;
+            padding: 12px;
+            background: #f0f9ff;
+            border-radius: 8px;
+            border-left: 4px solid #0ea5e9;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .stat-card {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 Translation Feature Demo</h1>
+            <p>Test the new translation functionality for English Story Hub</p>
+        </div>
+
+        <div class="feature-demo">
+            <div class="controls">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span>🔤</span>
+                    <strong>Translation</strong>
+                    <span id="loading" style="display: none;">⏳</span>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <select id="languageSelect" class="language-select">
+                        <option value="vi">🇻🇳 Tiếng Việt</option>
+                        <option value="zh">🇨🇳 中文</option>
+                        <option value="ja">🇯🇵 日本語</option>
+                        <option value="ko">🇰🇷 한국어</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="fr">🇫🇷 Français</option>
+                    </select>
+                    <button id="translateBtn" class="translate-btn">
+                        <span>🌐</span>
+                        Translate
+                    </button>
+                </div>
+            </div>
+
+            <div class="story-content">
+                <div class="story-title" id="storyTitle">The Adventure of Learning English</div>
+                <div id="storyContent">
+                    Once upon a time, there was a young student who dreamed of mastering English. 
+                    Every day, she would read beautiful stories, learn new words, and practice writing. 
+                    Through dedication and hard work, she discovered that learning English opened doors 
+                    to amazing adventures and wonderful friendships around the world. 
+                    Her journey taught her that with hope and persistence, any dream is possible.
+                </div>
+                <div id="translationInfo" class="translation-info" style="display: none;">
+                    💡 This content has been automatically translated. 
+                    <a href="#" onclick="showOriginal()" style="color: #0ea5e9;">View original</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">9</div>
+                <div class="stat-label">Languages Supported</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">~2s</div>
+                <div class="stat-label">Translation Speed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">Stories to Translate</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isTranslated = false;
+        const originalTitle = "The Adventure of Learning English";
+        const originalContent = `Once upon a time, there was a young student who dreamed of mastering English. 
+Every day, she would read beautiful stories, learn new words, and practice writing. 
+Through dedication and hard work, she discovered that learning English opened doors 
+to amazing adventures and wonderful friendships around the world. 
+Her journey taught her that with hope and persistence, any dream is possible.`;
+
+        const translations = {
+            'vi': {
+                title: 'Cuộc Phiêu Lưu Học Tiếng Anh',
+                content: `Ngày xửa ngày xưa, có một học sinh trẻ mơ ước thành thạo tiếng Anh. 
+Mỗi ngày, cô ấy sẽ đọc những câu chuyện đẹp, học từ vựng mới, và luyện tập viết. 
+Thông qua sự cống hiến và làm việc chăm chỉ, cô khám phá ra rằng học tiếng Anh mở ra cánh cửa 
+đến những cuộc phiêu lưu tuyệt vời và tình bạn tuyệt vời trên khắp thế giới. 
+Hành trình của cô dạy cô rằng với hy vọng và kiên trì, bất kỳ ước mơ nào cũng có thể.`
+            },
+            'zh': {
+                title: '学习英语的冒险',
+                content: `很久以前，有一个年轻学生梦想掌握英语。
+每天，她会读美丽的故事，学新单词，练习写作。
+通过奉献和努力工作，她发现学习英语为她开启了通往世界各地精彩冒险和美好友谊的大门。
+她的旅程教会她，只要有希望和坚持，任何梦想都是可能的。`
+            },
+            'ja': {
+                title: '英語学習の冒険',
+                content: `昔々、英語をマスターすることを夢見る若い学生がいました。
+毎日、彼女は美しい物語を読み、新しい言葉を学び、書く練習をしました。
+献身と努力により、彼女は英語学習が世界中の素晴らしい冒険と素晴らしい友情への扉を開くことを発見しました。
+彼女の旅は、希望と忍耐があれば、どんな夢でも可能であることを教えました。`
+            },
+            'es': {
+                title: 'La Aventura de Aprender Inglés',
+                content: `Érase una vez una joven estudiante que soñaba con dominar el inglés.
+Cada día, leía hermosas historias, aprendía nuevas palabras y practicaba escritura.
+A través de dedicación y trabajo duro, descubrió que aprender inglés abría puertas
+a aventuras increíbles y amistades maravillosas alrededor del mundo.
+Su viaje le enseñó que con esperanza y persistencia, cualquier sueño es posible.`
+            }
+        };
+
+        document.getElementById('translateBtn').addEventListener('click', function() {
+            const btn = this;
+            const loading = document.getElementById('loading');
+            const selectedLang = document.getElementById('languageSelect').value;
+            
+            if (isTranslated) {
+                showOriginal();
+                return;
+            }
+
+            // Show loading
+            loading.style.display = 'inline';
+            btn.textContent = 'Translating...';
+            btn.disabled = true;
+
+            // Simulate API delay
+            setTimeout(() => {
+                const translation = translations[selectedLang];
+                if (translation) {
+                    document.getElementById('storyTitle').textContent = translation.title;
+                    document.getElementById('storyContent').textContent = translation.content;
+                    document.getElementById('translationInfo').style.display = 'block';
+                    
+                    btn.innerHTML = '<span>📖</span> Show Original';
+                    isTranslated = true;
+                } else {
+                    alert('Translation not available for this language yet!');
+                }
+                
+                loading.style.display = 'none';
+                btn.disabled = false;
+            }, 1500);
+        });
+
+        function showOriginal() {
+            document.getElementById('storyTitle').textContent = originalTitle;
+            document.getElementById('storyContent').textContent = originalContent;
+            document.getElementById('translationInfo').style.display = 'none';
+            document.getElementById('translateBtn').innerHTML = '<span>🌐</span> Translate';
+            isTranslated = false;
+        }
+    </script>
+</body>
+</html>
